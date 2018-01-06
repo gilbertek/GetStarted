@@ -11,15 +11,25 @@ class RunInfo extends Component {
 
   constructor(props) {
     super(props);
+
+    this.state = {
+      value: this.props.value,
+    };
+  }
+
+  formatValue() {
+    return this.state.value;
   }
 
   render() {
+    const value = this.state.value ? this.formatValue() : '-';
+
     return (
       <View style={[shareStyles.runInfoContainer, { flex: 1 }]}>
         <Text style={shareStyles.runInfoTitle}>
           {this.props.title.toUpperCase()}
         </Text>
-        <Text style={shareStyles.runInfoValue}>{this.props.value}</Text>
+        <Text style={shareStyles.runInfoValue}>{value}</Text>
       </View>
     );
   }

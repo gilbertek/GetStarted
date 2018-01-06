@@ -6,7 +6,9 @@
 
 import React, { Component } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
+import MapView from 'react-native-maps';
 import RunInfo from './src/components/run-info';
+import RunInfoNumeric from './src/components/run-info-numeric';
 import shareStyles from './src/styles/shared-styles';
 
 const instructions = Platform.select({
@@ -16,15 +18,89 @@ const instructions = Platform.select({
     'Shake or press menu button for dev menu',
 });
 
+let id = 0;
+
 export default class App extends Component<{}> {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      markers: [],
+    };
+
+    setInterval(() => {
+      this.distanceInfo.setState({ value: Math.random() * 100 });
+      this.speedInfo.setState({ value: Math.random() * 15 });
+      this.directionInfo.setState({
+        value: this.directionInfo === 'N' ? 'NW' : 'N',
+      });
+    }, 1000);
+  }
+
+  addMarker = region => {
+    const now = new Date().getTime();
+
+    if (this.state.ladAddedMarker > now - 5000) {
+      return;
+    }
+
+    this.setState({
+      markers: [
+        ...this.state.markers,
+        {
+          coordinate: region,
+          key: id++,
+        },
+      ],
+      ladAddedMarker: now,
+    });
+  };
+
+  componentWillUnmount() {
+    // navigator.geolocation.stopWatch(this.state.watchId);
+  }
+
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome}>MAPVIEW</Text>
+        <MapView
+          style={styles.map}
+          showsUserLocation
+          followsUserLocation
+          initialRegion={{
+            latitude: 37.33307,
+            longitude: -122.0324,
+            latitudeDelta: 0.02,
+            longitudeDelta: 0.02,
+          }}
+          onRegionChange={region => this.addMarker(region)}
+        >
+          {this.state.markers.map(marker => (
+            <MapView.Marker coordinate={marker.coordinate} key={marker.key} />
+          ))}
+        </MapView>
         <View style={styles.infoContainer}>
-          <RunInfo title="Distance" value="0 km" />
-          <RunInfo title="Speed" value="0 km/h" />
-          <RunInfo title="Direction" value="NE" />
+          <RunInfoNumeric
+            unit="km"
+            title="Distance"
+            ref={info => {
+              this.distanceInfo = info;
+            }}
+          />
+          <RunInfoNumeric
+            title="Speed"
+            unit="km/h"
+            ref={info => {
+              this.speedInfo = info;
+            }}
+          />
+          <RunInfo
+            title="Direction"
+            value="N"
+            ref={info => {
+              this.directionInfo = info;
+            }}
+          />
         </View>
       </View>
     );
@@ -51,5 +127,8 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     flex: 1,
+  },
+  map: {
+    ...StyleSheet.absoluteFillObject,
   },
 });
